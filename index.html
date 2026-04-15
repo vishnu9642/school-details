@@ -1,83 +1,110 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>WizBuddy - School Chatbot</title>
+    <title>WizBuddy - Alexa Style</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background: #e6f0ff;
+            background: #0a0f1c;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            color: white;
         }
 
         .chat-container {
             width: 420px;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            height: 600px;
+            background: #121826;
+            border-radius: 20px;
+            box-shadow: 0 0 25px rgba(0, 170, 255, 0.3);
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         .chat-header {
-            background: #004aad;
-            color: white;
+            background: linear-gradient(90deg, #0077ff, #00c6ff);
             padding: 15px;
             font-size: 20px;
             text-align: center;
-            border-radius: 15px 15px 0 0;
             position: relative;
+            font-weight: bold;
         }
 
         .chat-header button {
             position: absolute;
             right: 10px;
-            top: 12px;
-            font-size: 12px;
-            padding: 4px 8px;
+            top: 10px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            padding: 5px 10px;
             cursor: pointer;
         }
 
         .chat-box {
             flex: 1;
-            padding: 10px;
+            padding: 15px;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
 
         .message {
             margin: 6px 0;
-            padding: 8px 12px;
-            border-radius: 10px;
+            padding: 10px 14px;
+            border-radius: 15px;
             max-width: 75%;
+            animation: fadeIn 0.3s ease-in-out;
         }
 
         .user {
-            background: #d1e7ff;
+            background: #0077ff;
             align-self: flex-end;
+            color: white;
         }
 
         .bot {
-            background: #f1f1f1;
+            background: #1f2a40;
             align-self: flex-start;
         }
 
         .chat-input {
             display: flex;
             padding: 10px;
-            gap: 5px;
-            border-top: 1px solid #ccc;
+            background: #0f172a;
+            border-top: 1px solid #333;
         }
 
         input {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            background: #1f2a40;
+            color: white;
         }
 
         button {
-            padding: 8px;
+            margin-left: 5px;
+            border: none;
+            border-radius: 10px;
+            padding: 10px;
             cursor: pointer;
+            background: #0077ff;
+            color: white;
+        }
+
+        button:hover {
+            background: #00aaff;
+        }
+
+        @keyframes fadeIn {
+            from {opacity: 0; transform: translateY(5px);}
+            to {opacity: 1; transform: translateY(0);}
         }
     </style>
 </head>
@@ -92,22 +119,24 @@
     <div class="chat-box" id="chatBox"></div>
 
     <div class="chat-input">
-        <input type="text" id="userInput" placeholder="Ask about subjects or principal...">
+        <input type="text" id="userInput" placeholder="Ask something...">
         <button onclick="sendMessage()">Send</button>
         <button onclick="startVoice()">🎤</button>
     </div>
 </div>
 
 <script>
-/* ---------- SCHOOL DATA ---------- */
 const school = {
     principal: "Mrs. Lakshmi Prasanna madam",
+    dean: "Rajasekhar sir",
+    zonal_coordinator: "Sudha Nair madam",
+
     subjects: {
         math: "Nitya madam",
-        telugu:"yallamma madam and anitha madam",
-        hindi:"Jameela madam",
+        telugu: "Yallamma madam",
+        hindi: "Jameela madam",
         english: "Ramya madam",
-        social: "sumathi madam",
+        social: "Sumathi madam",
         computer: "Karuna madam"
     }
 };
@@ -115,20 +144,20 @@ const school = {
 const chatBox = document.getElementById("chatBox");
 let lastBotAnswer = "";
 
-/* ---------- LOAD CHAT HISTORY ---------- */
+/* LOAD HISTORY */
 window.onload = () => {
     const saved = JSON.parse(localStorage.getItem("wizbuddyChat")) || [];
     saved.forEach(m => addMessage(m.text, m.sender, false));
 };
 
-/* ---------- SAVE MESSAGE ---------- */
+/* SAVE */
 function saveMessage(text, sender) {
     const history = JSON.parse(localStorage.getItem("wizbuddyChat")) || [];
     history.push({ text, sender });
     localStorage.setItem("wizbuddyChat", JSON.stringify(history));
 }
 
-/* ---------- ADD MESSAGE ---------- */
+/* ADD MESSAGE */
 function addMessage(text, sender, save = true) {
     const msg = document.createElement("div");
     msg.className = "message " + sender;
@@ -138,7 +167,7 @@ function addMessage(text, sender, save = true) {
     if (save) saveMessage(text, sender);
 }
 
-/* ---------- SEND MESSAGE ---------- */
+/* SEND */
 function sendMessage() {
     const input = document.getElementById("userInput");
     const question = input.value.toLowerCase();
@@ -149,22 +178,28 @@ function sendMessage() {
     processQuestion(question);
 }
 
-/* ---------- PROCESS QUESTION ---------- */
+/* PROCESS */
 function processQuestion(q) {
     let answer = "";
 
     if (q.includes("clear")) {
         clearChat();
-        answer = "Chat cleared successfully.";
+        answer = "Chat cleared.";
     }
     else if (q.includes("repeat")) {
         answer = lastBotAnswer || "Nothing to repeat.";
     }
     else if (q.includes("hello") || q.includes("hi")) {
-        answer = "Hello! I am WizBuddy. How can I help you?";
+        answer = "Hello! I am WizBuddy.";
     }
     else if (q.includes("principal")) {
         answer = "The principal is " + school.principal;
+    }
+    else if (q.includes("dean")) {
+        answer = "The dean is " + school.dean;
+    }
+    else if (q.includes("zonal") || q.includes("coordinator")) {
+        answer = "The zonal coordinator is " + school.zonal_coordinator;
     }
     else {
         for (let subject in school.subjects) {
@@ -176,37 +211,36 @@ function processQuestion(q) {
     }
 
     if (!answer) {
-        answer = "Sorry, I don't understand. Please ask about a subject or the principal.";
+        answer = "Sorry, I don't understand.";
     }
 
     setTimeout(() => {
         addMessage(answer, "bot");
         lastBotAnswer = answer;
         speak(answer);
-    }, 400);
+    }, 300);
 }
 
-/* ---------- VOICE INPUT ---------- */
+/* VOICE INPUT */
 function startVoice() {
     const rec = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
     rec.lang = "en-IN";
     rec.start();
 
     rec.onresult = e => {
-        document.getElementById("userInput").value =
-            e.results[0][0].transcript;
+        document.getElementById("userInput").value = e.results[0][0].transcript;
         sendMessage();
     };
 }
 
-/* ---------- VOICE OUTPUT ---------- */
+/* VOICE OUTPUT */
 function speak(text) {
     const speech = new SpeechSynthesisUtterance(text);
     speech.lang = "en-IN";
     window.speechSynthesis.speak(speech);
 }
 
-/* ---------- CLEAR CHAT ---------- */
+/* CLEAR */
 function clearChat() {
     localStorage.removeItem("wizbuddyChat");
     chatBox.innerHTML = "";
